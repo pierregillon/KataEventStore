@@ -10,7 +10,7 @@ namespace KataEventStore.TransactionDomain.Domain.Infrastructure
     {
         private readonly IEventStoreConnection eventStoreConnection;
 
-        public EventStoreOrg(IEventStoreConnection eventStoreConnection)
+        public EventStoreOrg(/*IEventStoreConnection eventStoreConnection*/)
         {
             this.eventStoreConnection = eventStoreConnection;
         }

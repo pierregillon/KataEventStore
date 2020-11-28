@@ -7,7 +7,8 @@ namespace KataEventStore.TransactionDomain.Domain.Core
         private readonly Guid _guid;
         
         public static TransactionId New() => new TransactionId(Guid.NewGuid());
-        
+        public static TransactionId From(Guid id) => new TransactionId(id);
+
         private TransactionId(Guid guid) => this._guid = guid;
 
         public bool Equals(TransactionId other) => _guid.Equals(other._guid);
@@ -22,5 +23,6 @@ namespace KataEventStore.TransactionDomain.Domain.Core
 
         public static bool operator ==(TransactionId transactionId, TransactionId transactionId2) => transactionId.Equals(transactionId2);
         public static bool operator !=(TransactionId transactionId, TransactionId transactionId2) => !(transactionId == transactionId2);
+
     }
 }

@@ -1,9 +1,9 @@
-﻿using KataEventStore.TransactionDomain.Domain.Core;
+﻿using System;
 
 namespace KataEventStore.TransactionPresentation.Projections {
     public class TransactionListItem
     {
-        public TransactionId Id { get; set; }
+        public Guid Id { get; set; }
         public decimal Amount { get; set; }
         public string Name { get; set; }
     }

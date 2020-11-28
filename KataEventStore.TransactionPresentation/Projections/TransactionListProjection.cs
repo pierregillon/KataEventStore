@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using KataEventStore.TransactionDomain.Domain.Core.Events;
+using KataEventStore.TransactionPresentation.Projections.Events;
 using MediatR;
 
 namespace KataEventStore.TransactionPresentation.Projections

@@ -1,18 +1,21 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
-namespace KataEventStore.TransactionPresentation.Projections {
+namespace KataEventStore.TransactionPresentation.Projections
+{
     public class InMemoryDatabase
     {
-        private readonly IDictionary<Type, IList<object>> _data = new Dictionary<Type, IList<object>>();
+        private readonly IDictionary<Type, IList> _data = new Dictionary<Type, IList>();
 
         public IList<T> Table<T>()
         {
-            if (!_data.TryGetValue(typeof(T), out var result)) {
-                result = new List<object>();
-                _data.Add(typeof(T), result);
+            if (_data.TryGetValue(typeof(T), out var result)) {
+                return (List<T>) result;
             }
-            return (IList<T>) result;
+            var value = new List<T>();
+            _data.Add(typeof(T), value);
+            return value;
         }
     }
 }
