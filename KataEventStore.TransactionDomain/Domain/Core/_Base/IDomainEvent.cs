@@ -1,4 +1,6 @@
-﻿namespace KataEventStore.TransactionDomain.Domain.Core._Base
+﻿using MediatR;
+
+namespace KataEventStore.TransactionDomain.Domain.Core._Base
 {
-    public interface IDomainEvent { }
+    public interface IDomainEvent : IRequest{ }
 }
