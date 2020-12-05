@@ -1,5 +1,6 @@
 using System;
 using EventStore.ClientAPI;
+using KataEventStore.Events;
 using KataEventStore.TransactionDomain.Domain.Core._Base;
 using KataEventStore.TransactionDomain.Domain.Infrastructure;
 using MediatR;
@@ -54,7 +55,7 @@ namespace KataEventStore.TransactionDomain
     {
         public static IServiceCollection RegisterApplicationServices(this IServiceCollection services)
         {
-            services.AddScoped<ITypeLocator, ReflectionTypeLocator>();
+            services.AddScoped<IDomainEventTypeLocator, ReflectionDomainEventTypeLocator>();
             services.AddScoped<IEventStore, EventStoreOrg>();
             services.AddScoped<IEventStoreConnection>(x =>
             {

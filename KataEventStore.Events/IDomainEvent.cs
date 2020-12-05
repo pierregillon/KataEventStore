@@ -3,7 +3,7 @@ using MediatR;
 
 namespace KataEventStore.Events
 {
-    public interface IDomainEvent : IRequest
+    public interface IDomainEvent : INotification
     {
         Guid AggregateId { get; }
     }

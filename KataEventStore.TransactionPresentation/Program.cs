@@ -16,7 +16,8 @@ namespace KataEventStore.TransactionPresentation
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder
-                    => webBuilder.UseStartup<Startup>().ConfigureLogging(SerilogConfiguration));
+                    => webBuilder.UseStartup<Startup>().ConfigureLogging(SerilogConfiguration)
+                );
 
         private static void SerilogConfiguration(WebHostBuilderContext builderContext, ILoggingBuilder builder)
         {

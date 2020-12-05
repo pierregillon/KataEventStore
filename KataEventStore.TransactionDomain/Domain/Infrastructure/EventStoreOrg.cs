@@ -16,18 +16,18 @@ namespace KataEventStore.TransactionDomain.Domain.Infrastructure
         private const int EVENT_COUNT = 200;
 
         private readonly JsonSerializerSettings _serializerSettings;
-        private readonly ITypeLocator _typeLocator;
+        private readonly IDomainEventTypeLocator _domainEventTypeLocator;
         private readonly IEventStoreConnection _connection;
 
-        public EventStoreOrg(ITypeLocator typeLocator, IEventStoreConnection connection)
+        public EventStoreOrg(IDomainEventTypeLocator domainEventTypeLocator, IEventStoreConnection connection)
         {
-            _typeLocator = typeLocator;
+            _domainEventTypeLocator = domainEventTypeLocator;
             _connection = connection;
 
             var jsonResolver = new PropertyCleanerSerializerContractResolver();
             jsonResolver.IgnoreProperty(typeof(IDomainEvent), "Version");
             jsonResolver.RenameProperty(typeof(IDomainEvent), "Id", "AggregateId");
-            
+
             _serializerSettings = new JsonSerializerSettings {
                 ContractResolver = jsonResolver,
                 Formatting = Formatting.Indented
@@ -42,6 +42,7 @@ namespace KataEventStore.TransactionDomain.Domain.Infrastructure
                 await Store(domainEvent);
             }
         }
+
         public async Task Store(IDomainEvent @event)
         {
             var json = JsonConvert.SerializeObject(@event, _serializerSettings);
@@ -90,16 +91,10 @@ namespace KataEventStore.TransactionDomain.Domain.Infrastructure
 
         private IDomainEvent ConvertToDomainEvent(ResolvedEvent @event)
         {
-            try {
-                var type = _typeLocator.FindEventType(@event.Event.EventType);
-                if (type == null) {
-                    throw new Exception("Event is unknown, unable to correctly deserialize it.");
-                }
+            if (_domainEventTypeLocator.TryGetValue(@event.Event.EventType, out var type)) {
                 return ConvertToDomainEvent(@event, type);
             }
-            catch (Exception ex) {
-                throw new Exception($"An error occurred while parsing event from event store. Stream: {@event.Event.EventStreamId}, Position: {@event.Event.EventNumber}", ex);
-            }
+            throw new Exception("Event is unknown, unable to correctly deserialize it.");
         }
 
         private IDomainEvent ConvertToDomainEvent(ResolvedEvent @event, Type eventType)

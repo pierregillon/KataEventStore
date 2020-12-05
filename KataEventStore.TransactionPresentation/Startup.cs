@@ -1,4 +1,3 @@
-using KataEventStore.TransactionPresentation.Projections;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -39,16 +38,6 @@ namespace KataEventStore.TransactionPresentation
                     c.DocExpansion(DocExpansion.None);
                     c.RoutePrefix = string.Empty;
                 });
-        }
-    }
-
-    public static class IServiceCollectionExtensions
-    {
-        public static IServiceCollection RegisterApplicationServices(this IServiceCollection services)
-        {
-            services.AddSingleton<InMemoryDatabase>();
-
-            return services;
         }
     }
 }

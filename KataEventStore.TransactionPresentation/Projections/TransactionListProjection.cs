@@ -7,16 +7,16 @@ using MediatR;
 namespace KataEventStore.TransactionPresentation.Projections
 {
     public class TransactionListProjection :
-        IRequestHandler<TransactionCreated>,
-        IRequestHandler<TransactionRenamed>,
-        IRequestHandler<TransactionAmountEdited>,
-        IRequestHandler<TransactionDeleted>
+        INotificationHandler<TransactionCreated>,
+        INotificationHandler<TransactionRenamed>,
+        INotificationHandler<TransactionAmountEdited>,
+        INotificationHandler<TransactionDeleted>
     {
         private readonly InMemoryDatabase _database;
 
         public TransactionListProjection(InMemoryDatabase database) => _database = database;
 
-        public Task<Unit> Handle(TransactionCreated request, CancellationToken cancellationToken)
+        public Task Handle(TransactionCreated request, CancellationToken cancellationToken)
         {
             _database.Table<TransactionListItem>().Add(new TransactionListItem {
                 Id = request.AggregateId,
@@ -24,34 +24,36 @@ namespace KataEventStore.TransactionPresentation.Projections
                 Amount = request.Amount
             });
 
-            return Task.FromResult(Unit.Value);
+            return Task.CompletedTask;
         }
 
-        public Task<Unit> Handle(TransactionRenamed request, CancellationToken cancellationToken)
+        public Task Handle(TransactionRenamed request, CancellationToken cancellationToken)
         {
             var item = _database.Table<TransactionListItem>().Single(x => x.Id == request.AggregateId);
+            if (item != null) {
+                item.Name = request.NewName;
+            }
 
-            item.Name = request.NewName;
-
-            return Task.FromResult(Unit.Value);
+            return Task.CompletedTask;
         }
 
-        public Task<Unit> Handle(TransactionAmountEdited request, CancellationToken cancellationToken)
+        public Task Handle(TransactionAmountEdited request, CancellationToken cancellationToken)
         {
-            var item = _database.Table<TransactionListItem>().Single(x => x.Id == request.AggregateId);
-
-            item.Amount = request.NewAmount;
-
-            return Task.FromResult(Unit.Value);
+            var item = _database.Table<TransactionListItem>().SingleOrDefault(x => x.Id == request.AggregateId);
+            if (item != null) {
+                item.Amount = request.NewAmount;
+            }
+            return Task.CompletedTask;
         }
 
-        public Task<Unit> Handle(TransactionDeleted request, CancellationToken cancellationToken)
+        public Task Handle(TransactionDeleted request, CancellationToken cancellationToken)
         {
-            var item = _database.Table<TransactionListItem>().Single(x => x.Id == request.AggregateId);
+            var item = _database.Table<TransactionListItem>().SingleOrDefault(x => x.Id == request.AggregateId);
+            if (item != null) {
+                _database.Table<TransactionListItem>().Remove(item);
+            }
 
-            _database.Table<TransactionListItem>().Remove(item);
-
-            return Task.FromResult(Unit.Value);
+            return Task.CompletedTask;
         }
     }
 }
