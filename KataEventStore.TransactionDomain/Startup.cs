@@ -1,3 +1,4 @@
+using System;
 using EventStore.ClientAPI;
 using KataEventStore.TransactionDomain.Domain.Core._Base;
 using KataEventStore.TransactionDomain.Domain.Infrastructure;
@@ -6,7 +7,9 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using Serilog.Extensions.Logging;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
 namespace KataEventStore.TransactionDomain
@@ -17,7 +20,10 @@ namespace KataEventStore.TransactionDomain
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<ILoggerFactory>(services => new SerilogLoggerFactory());
+
             services
+                .AddLogging()
                 .AddMediatR(typeof(Startup).Assembly)
                 .AddSwaggerGen(conf => conf.SwaggerDoc("v1.0", new OpenApiInfo { Title = "TransactionDomain API v1.0", Version = "v1.0" }))
                 .AddControllers();
@@ -48,8 +54,16 @@ namespace KataEventStore.TransactionDomain
     {
         public static IServiceCollection RegisterApplicationServices(this IServiceCollection services)
         {
+            services.AddScoped<ITypeLocator, ReflectionTypeLocator>();
             services.AddScoped<IEventStore, EventStoreOrg>();
-            //services.AddScoped(x => EventStoreConnection.Create("http://127.0.0.7:1113"));
+            services.AddScoped<IEventStoreConnection>(x =>
+            {
+                var connection = EventStoreConnection.Create(
+                    new Uri("tcp://admin:changeit@localhost:1113")
+                );
+                connection.ConnectAsync().Wait();
+                return connection;
+            });
 
             return services;
         }

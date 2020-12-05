@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using KataEventStore.TransactionPresentation.Projections.Events;
+using KataEventStore.Events;
 using MediatR;
 
 namespace KataEventStore.TransactionPresentation.Projections
@@ -19,7 +19,7 @@ namespace KataEventStore.TransactionPresentation.Projections
         public Task<Unit> Handle(TransactionCreated request, CancellationToken cancellationToken)
         {
             _database.Table<TransactionListItem>().Add(new TransactionListItem {
-                Id = request.Id,
+                Id = request.AggregateId,
                 Name = request.Name,
                 Amount = request.Amount
             });
@@ -29,7 +29,7 @@ namespace KataEventStore.TransactionPresentation.Projections
 
         public Task<Unit> Handle(TransactionRenamed request, CancellationToken cancellationToken)
         {
-            var item = _database.Table<TransactionListItem>().Single(x => x.Id == request.Id);
+            var item = _database.Table<TransactionListItem>().Single(x => x.Id == request.AggregateId);
 
             item.Name = request.NewName;
 
@@ -38,7 +38,7 @@ namespace KataEventStore.TransactionPresentation.Projections
 
         public Task<Unit> Handle(TransactionAmountEdited request, CancellationToken cancellationToken)
         {
-            var item = _database.Table<TransactionListItem>().Single(x => x.Id == request.Id);
+            var item = _database.Table<TransactionListItem>().Single(x => x.Id == request.AggregateId);
 
             item.Amount = request.NewAmount;
 
@@ -47,7 +47,7 @@ namespace KataEventStore.TransactionPresentation.Projections
 
         public Task<Unit> Handle(TransactionDeleted request, CancellationToken cancellationToken)
         {
-            var item = _database.Table<TransactionListItem>().Single(x => x.Id == request.TransactionId);
+            var item = _database.Table<TransactionListItem>().Single(x => x.Id == request.AggregateId);
 
             _database.Table<TransactionListItem>().Remove(item);
 

@@ -1,4 +1,3 @@
-using FluentAsync;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -22,11 +21,12 @@ namespace KataEventStore.TransactionDomain
         {
             builder.ClearProviders();
 
-            new LoggerConfiguration()
+            Log.Logger = new LoggerConfiguration()
                 .ReadFrom
                 .Configuration(builderContext.Configuration)
-                .CreateLogger()
-                .Pipe(x => builder.AddSerilog(x));
+                .CreateLogger();
+
+            builder.AddSerilog(Log.Logger);
         }
     }
 }
