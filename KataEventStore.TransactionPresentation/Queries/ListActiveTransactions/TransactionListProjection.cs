@@ -29,7 +29,7 @@ namespace KataEventStore.TransactionPresentation.Projections
 
         public Task Handle(TransactionRenamed @event, CancellationToken cancellationToken)
         {
-            var item = _database.Table<TransactionListItem>().Single(x => x.Id == @event.AggregateId);
+            var item = _database.Table<TransactionListItem>().SingleOrDefault(x => x.Id == @event.AggregateId);
             if (item != null) {
                 item.Name = @event.NewName;
             }

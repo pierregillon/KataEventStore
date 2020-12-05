@@ -107,6 +107,9 @@ namespace KataEventStore.TransactionDomain.Domain.Infrastructure
 
             do {
                 currentSlice = await _connection.ReadStreamEventsForwardAsync(streamId, nextSliceStart, EVENT_COUNT, false);
+                if (currentSlice.Status != SliceReadStatus.Success) {
+                    throw new InvalidOperationException($"The stream with id {streamId} was not found. Aggregate not found.");
+                }
                 nextSliceStart = currentSlice.NextEventNumber;
                 streamEvents.AddRange(currentSlice.Events);
             } while (!currentSlice.IsEndOfStream);

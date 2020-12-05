@@ -61,7 +61,10 @@ namespace KataEventStore.TransactionPresentation.Projections
                         await Publish(@event.Event, domainEventType);
                     }
                 },
-                x => _logger.LogInformation("Moving to live mode")
+                x => _logger.LogInformation("Moving to live mode"),
+                (subscription, reason, error) => {
+                    _logger.LogError(error, $"The subscription dropped because of {reason}");
+                }
             );
         }
 

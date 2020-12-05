@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using KataEventStore.Events;
 using KataEventStore.TransactionDomain.Domain.Core._Base;
 
@@ -8,7 +9,6 @@ namespace KataEventStore.TransactionDomain.Domain.Core
     public class Transaction : AggregateRoot
     {
         private TransactionId _id;
-        private bool _hasBeenDeleted;
         private decimal _amount;
         private string _name;
 
@@ -16,10 +16,16 @@ namespace KataEventStore.TransactionDomain.Domain.Core
             => new TransactionCreated(TransactionId.New(), name, amount);
 
         public static Transaction Rehydrate(IEnumerable<IDomainEvent> events) 
-            => new Transaction(events);
+            => new Transaction(events.ToArray());
 
-        protected Transaction(IEnumerable<IDomainEvent> events)
+        protected Transaction(IReadOnlyCollection<IDomainEvent> events)
         {
+            if (!events.Any()) {
+                throw new InvalidOperationException("The transaction does not have any events to apply.");
+            }
+            if (events.OfType<TransactionDeleted>().Any()) {
+                throw new InvalidOperationException("Unable to load the transaction : it has been deleted.");
+            }
             foreach (var domainEvent in events) {
                 ApplyEvent(domainEvent);
             }
@@ -41,9 +47,6 @@ namespace KataEventStore.TransactionDomain.Domain.Core
 
         public IEnumerable<IDomainEvent> Delete()
         {
-            if (_hasBeenDeleted) {
-                throw new InvalidOperationException("Unable to deleted transaction : already deleted.");
-            }
             yield return new TransactionDeleted(_id);
         }
 
@@ -62,11 +65,6 @@ namespace KataEventStore.TransactionDomain.Domain.Core
         protected void Apply(TransactionAmountEdited @event)
         {
             _amount = @event.NewAmount;
-        }
-
-        protected void Apply(TransactionDeleted @event)
-        {
-            _hasBeenDeleted = true;
         }
     }
 }
