@@ -2,11 +2,11 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentAsync;
 using KataEventStore.TransactionPresentation.Projections;
 using MediatR;
 
-namespace KataEventStore.TransactionPresentation.Queries.ListActiveTransactions {
+namespace KataEventStore.TransactionPresentation.Queries.ListActiveTransactions
+{
     public class ListActiveTransactionListItemQueryHandler : IRequestHandler<ListActiveTransactionListItemQuery, IEnumerable<TransactionListItem>>
     {
         private readonly InMemoryDatabase _database;
@@ -14,10 +14,10 @@ namespace KataEventStore.TransactionPresentation.Queries.ListActiveTransactions 
         public ListActiveTransactionListItemQueryHandler(InMemoryDatabase database) => _database = database;
 
         public Task<IEnumerable<TransactionListItem>> Handle(ListActiveTransactionListItemQuery request, CancellationToken cancellationToken)
-            => _database
-                .Table<TransactionListItem>()
-                .ToList()
-                .Pipe(x => (IEnumerable<TransactionListItem>) x)
-                .Pipe(Task.FromResult);
+        {
+            var result = _database.Table<TransactionListItem>().ToList();
+
+            return Task.FromResult((IEnumerable<TransactionListItem>) result);
+        }
     }
 }

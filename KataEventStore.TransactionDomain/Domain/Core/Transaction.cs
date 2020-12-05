@@ -12,7 +12,7 @@ namespace KataEventStore.TransactionDomain.Domain.Core
         private decimal _amount;
         private string _name;
 
-        public static IDomainEvent New(string name, in decimal amount) 
+        public static TransactionCreated New(string name, in decimal amount) 
             => new TransactionCreated(TransactionId.New(), name, amount);
 
         public static Transaction Rehydrate(IEnumerable<IDomainEvent> events) 
@@ -52,6 +52,16 @@ namespace KataEventStore.TransactionDomain.Domain.Core
             _id = TransactionId.From(@event.AggregateId);
             _amount = @event.Amount;
             _name = @event.Name;
+        }
+
+        protected void Apply(TransactionRenamed @event)
+        {
+            _name = @event.NewName;
+        }
+
+        protected void Apply(TransactionAmountEdited @event)
+        {
+            _amount = @event.NewAmount;
         }
 
         protected void Apply(TransactionDeleted @event)

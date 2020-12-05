@@ -8,10 +8,17 @@ namespace KataEventStore.TransactionDomain.Domain.Application._Base
     {
         public async Task<Unit> Handle(T request, CancellationToken cancellationToken)
         {
-            await this.Handle(request);
+            await Handle(request);
             return Unit.Value;
         }
 
         protected abstract Task Handle(T command);
+    }
+
+    public abstract class CommandHandler<T, TResult> : IRequestHandler<T, TResult> where T : IRequest<TResult>
+    {
+        public async Task<TResult> Handle(T request, CancellationToken cancellationToken) => await Handle(request);
+
+        protected abstract Task<TResult> Handle(T command);
     }
 }

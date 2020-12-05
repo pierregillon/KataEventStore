@@ -1,8 +1,10 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using EventStore.ClientAPI;
+using FluentAsync;
 using KataEventStore.Events;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -41,15 +43,22 @@ namespace KataEventStore.TransactionPresentation.Projections
 
         private void SubscribeToAllEvents(IPublisher mediator, IEventStoreConnection eventStoreConnection, IDomainEventTypeLocator domainEventTypeLocator, CancellationToken cancellationToken)
         {
+            async Task Publish(RecordedEvent @event, Type domainEventType)
+            {
+                var domainEvent = (IDomainEvent)Deserialize(@event.Data, domainEventType);
+                _logger.LogInformation($"Replaying event {domainEvent.GetType().Name} on aggregate {domainEvent.AggregateId}");
+                await mediator.Publish(domainEvent, cancellationToken);
+
+                var eventWithMeta = domainEvent.WrapWithMeta(Deserialize<DomainEventMetadata>(@event.Metadata));
+                await mediator.Publish(eventWithMeta, cancellationToken);
+            }
+
             _subscription = eventStoreConnection.SubscribeToAllFrom(
                 Position.Start,
                 CatchUpSubscriptionSettings.Default,
                 async (subscription, @event) => {
                     if (domainEventTypeLocator.TryGetValue(@event.Event.EventType, out var domainEventType)) {
-                        var json = Encoding.UTF8.GetString(@event.Event.Data);
-                        var domainEvent = (IDomainEvent) JsonConvert.DeserializeObject(json, domainEventType);
-                        _logger.LogInformation($"Replaying event {domainEvent.GetType().Name} on aggregate {domainEvent.AggregateId}");
-                        await mediator.Publish(domainEvent, cancellationToken);
+                        await Publish(@event.Event, domainEventType);
                     }
                 },
                 x => _logger.LogInformation("Moving to live mode")
@@ -62,5 +71,14 @@ namespace KataEventStore.TransactionPresentation.Projections
             _scope.Dispose();
             return Task.CompletedTask;
         }
+
+        private static object Deserialize(byte[] data, Type type)
+        {
+            return data
+                .Pipe(Encoding.UTF8.GetString)
+                .Pipe(x => JsonConvert.DeserializeObject(x, type));
+        }
+
+        private static T Deserialize<T>(byte[] data) => (T)Deserialize(data, typeof(T));
     }
 }

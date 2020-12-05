@@ -20,19 +20,19 @@ namespace KataEventStore.TransactionDomain.Controllers
         public TransactionController(IMediator mediator) => _mediator = mediator;
 
         [HttpPost]
-        public async Task CreateTransaction([Required] [FromBody] CreateTransactionDto model)
+        public async Task<Guid> CreateTransaction([Required] [FromBody] CreateTransactionDto model)
             => await _mediator.Send(new CreateTransactionCommand(model.Name, model.Amount));
 
         [HttpPut("amount")]
         public async Task EditAmount([Required] [FromBody] EditAmountDto model)
             => await _mediator.Send(new EditTransactionAmountCommand(TransactionId.From(model.TransactionId), model.Amount));
 
-        [HttpPost("name")]
+        [HttpPut("name")]
         public async Task Rename([Required] [FromBody] RenameTransactionDto model)
             => await _mediator.Send(new RenameTransactionCommand(TransactionId.From(model.TransactionId), model.Name));
 
         [HttpDelete("{transactionId}")]
-        public async Task DeleteTransaction([Required] [FromQuery] Guid transactionId)
+        public async Task DeleteTransaction([Required, FromRoute] Guid transactionId)
             => await _mediator.Send(new DeleteTransactionCommand(TransactionId.From(transactionId)));
     }
 

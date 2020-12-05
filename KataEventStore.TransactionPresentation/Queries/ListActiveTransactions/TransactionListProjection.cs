@@ -16,39 +16,39 @@ namespace KataEventStore.TransactionPresentation.Projections
 
         public TransactionListProjection(InMemoryDatabase database) => _database = database;
 
-        public Task Handle(TransactionCreated request, CancellationToken cancellationToken)
+        public Task Handle(TransactionCreated @event, CancellationToken cancellationToken)
         {
             _database.Table<TransactionListItem>().Add(new TransactionListItem {
-                Id = request.AggregateId,
-                Name = request.Name,
-                Amount = request.Amount
+                Id = @event.AggregateId,
+                Name = @event.Name,
+                Amount = @event.Amount
             });
 
             return Task.CompletedTask;
         }
 
-        public Task Handle(TransactionRenamed request, CancellationToken cancellationToken)
+        public Task Handle(TransactionRenamed @event, CancellationToken cancellationToken)
         {
-            var item = _database.Table<TransactionListItem>().Single(x => x.Id == request.AggregateId);
+            var item = _database.Table<TransactionListItem>().Single(x => x.Id == @event.AggregateId);
             if (item != null) {
-                item.Name = request.NewName;
+                item.Name = @event.NewName;
             }
 
             return Task.CompletedTask;
         }
 
-        public Task Handle(TransactionAmountEdited request, CancellationToken cancellationToken)
+        public Task Handle(TransactionAmountEdited @event, CancellationToken cancellationToken)
         {
-            var item = _database.Table<TransactionListItem>().SingleOrDefault(x => x.Id == request.AggregateId);
+            var item = _database.Table<TransactionListItem>().SingleOrDefault(x => x.Id == @event.AggregateId);
             if (item != null) {
-                item.Amount = request.NewAmount;
+                item.Amount = @event.NewAmount;
             }
             return Task.CompletedTask;
         }
 
-        public Task Handle(TransactionDeleted request, CancellationToken cancellationToken)
+        public Task Handle(TransactionDeleted @event, CancellationToken cancellationToken)
         {
-            var item = _database.Table<TransactionListItem>().SingleOrDefault(x => x.Id == request.AggregateId);
+            var item = _database.Table<TransactionListItem>().SingleOrDefault(x => x.Id == @event.AggregateId);
             if (item != null) {
                 _database.Table<TransactionListItem>().Remove(item);
             }

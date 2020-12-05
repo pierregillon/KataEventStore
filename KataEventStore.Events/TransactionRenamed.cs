@@ -2,15 +2,13 @@
 
 namespace KataEventStore.Events
 {
-    public class TransactionRenamed : IDomainEvent
+    public class TransactionRenamed : TransactionDomainEvent
     {
-        public Guid AggregateId { get; }
         public string OldName { get; }
         public string NewName { get; }
 
-        public TransactionRenamed(Guid aggregateId, string oldName, string newName)
+        public TransactionRenamed(Guid aggregateId, string oldName, string newName) : base(aggregateId)
         {
-            AggregateId = aggregateId;
             OldName = oldName;
             NewName = newName;
         }

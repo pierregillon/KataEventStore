@@ -2,10 +2,8 @@
 
 namespace KataEventStore.Events
 {
-    public class TransactionDeleted : IDomainEvent
+    public class TransactionDeleted : TransactionDomainEvent
     {
-        public Guid AggregateId { get; }
-
-        public TransactionDeleted(Guid aggregateId) => AggregateId = aggregateId;
+        public TransactionDeleted(Guid aggregateId) : base(aggregateId) { }
     }
 }

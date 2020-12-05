@@ -23,13 +23,7 @@ namespace KataEventStore.TransactionDomain.Domain.Infrastructure
         {
             _domainEventTypeLocator = domainEventTypeLocator;
             _connection = connection;
-
-            var jsonResolver = new PropertyCleanerSerializerContractResolver();
-            jsonResolver.IgnoreProperty(typeof(IDomainEvent), "Version");
-            jsonResolver.RenameProperty(typeof(IDomainEvent), "Id", "AggregateId");
-
             _serializerSettings = new JsonSerializerSettings {
-                ContractResolver = jsonResolver,
                 Formatting = Formatting.Indented
             };
         }
@@ -45,16 +39,17 @@ namespace KataEventStore.TransactionDomain.Domain.Infrastructure
 
         public async Task Store(IDomainEvent @event)
         {
-            var json = JsonConvert.SerializeObject(@event, _serializerSettings);
             var eventData = new EventData(
                 Guid.NewGuid(),
                 @event.GetType().Name,
                 true,
-                Encoding.UTF8.GetBytes(json),
-                null
+                Serialize(@event),
+                Serialize(new DomainEventMetadata{ CreationDate = DateTime.UtcNow })
             );
             await _connection.AppendToStreamAsync(@event.AggregateId.ToString(), ExpectedVersion.Any, eventData);
         }
+
+        private byte[] Serialize(object @event) => JsonConvert.SerializeObject(@event, _serializerSettings).Pipe(Encoding.UTF8.GetBytes);
 
         public async Task<IEnumerable<IDomainEvent>> GetAllEvents(Guid aggregateId) =>
             await ReadAllEventsInStream(aggregateId.ToString(), 0)
@@ -119,4 +114,6 @@ namespace KataEventStore.TransactionDomain.Domain.Infrastructure
             return streamEvents;
         }
     }
+
+
 }
