@@ -16,6 +16,9 @@ namespace KataEventStore.TransactionPresentation.Persisted.Projections
 {
     public class ProjectionFeederService : IHostedService
     {
+        private const string GROUP_NAME = "TransactionPresentation.Persisted";
+        private const string STREAM_NAME = "$ce-transaction";
+
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<ProjectionFeederService> _logger;
         private IServiceScope _scope;
@@ -39,11 +42,18 @@ namespace KataEventStore.TransactionPresentation.Persisted.Projections
             );
         }
 
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            _persistentSubscription?.Stop(TimeSpan.FromSeconds(10));
+            _scope.Dispose();
+            return Task.CompletedTask;
+        }
+
         private async Task SubscribeToEvents(IPublisher mediator, IEventStoreConnection eventStoreConnection, IDomainEventTypeLocator domainEventTypeLocator, CancellationToken cancellationToken)
         {
             async Task Publish(RecordedEvent @event, Type domainEventType)
             {
-                var domainEvent = (IDomainEvent)Deserialize(@event.Data, domainEventType);
+                var domainEvent = (IDomainEvent) Deserialize(@event.Data, domainEventType);
                 _logger.LogInformation($"Playing event {domainEvent.GetType().Name} of aggregate {domainEvent.AggregateId}");
                 await mediator.Publish(domainEvent, cancellationToken);
             }
@@ -51,8 +61,8 @@ namespace KataEventStore.TransactionPresentation.Persisted.Projections
             await CreatePersistentSubscriptionIfDoesNotExists(eventStoreConnection);
 
             _persistentSubscription = await eventStoreConnection.ConnectToPersistentSubscriptionAsync(
-                "$ce-transaction",
-                "TransactionPresentation",
+                STREAM_NAME,
+                GROUP_NAME,
                 async (subscription, @event) => {
                     if (domainEventTypeLocator.TryGetValue(@event.Event.EventType, out var domainEventType)) {
                         await Publish(@event.Event, domainEventType);
@@ -74,8 +84,8 @@ namespace KataEventStore.TransactionPresentation.Persisted.Projections
                     .StartFromBeginning();
 
                 await eventStoreConnection.CreatePersistentSubscriptionAsync(
-                    "$ce-transaction",
-                    "TransactionPresentation",
+                    STREAM_NAME,
+                    GROUP_NAME,
                     settings,
                     new UserCredentials("admin", "changeit")
                 );
@@ -85,18 +95,9 @@ namespace KataEventStore.TransactionPresentation.Persisted.Projections
             }
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            _persistentSubscription?.Stop(TimeSpan.FromSeconds(10));
-            _scope.Dispose();
-            return Task.CompletedTask;
-        }
-
         private static object Deserialize(byte[] data, Type type)
-        {
-            return data
+            => data
                 .Pipe(Encoding.UTF8.GetString)
                 .Pipe(x => JsonConvert.DeserializeObject(x, type));
-        }
     }
 }

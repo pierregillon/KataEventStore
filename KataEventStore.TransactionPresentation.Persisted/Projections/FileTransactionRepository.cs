@@ -12,6 +12,8 @@ namespace KataEventStore.TransactionPresentation.Persisted.Projections
     {
         private const string FILE_NAME = "transactions.json";
 
+        private string FilePath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, FILE_NAME);
+
         public async Task AddAsync(TransactionListItem item)
         {
             var transactions = await ReadAllTransactions();
@@ -21,24 +23,24 @@ namespace KataEventStore.TransactionPresentation.Persisted.Projections
 
         public Task Save(IEnumerable<TransactionListItem> transactions)
         {
-            if (!File.Exists(FILE_NAME)) {
-                File.Create(FILE_NAME);
+            if (!File.Exists(FilePath)) {
+                File.Create(FilePath);
             }
             return JsonConvert
                 .SerializeObject(transactions)
-                .Pipe(x => File.WriteAllTextAsync(FILE_NAME, x));
+                .Pipe(x => File.WriteAllTextAsync(FilePath, x));
         }
 
         async Task<IReadOnlyCollection<TransactionListItem>> ITransactionRepository.GetTransactions()
             => await ReadAllTransactions();
 
-        private static async Task<List<TransactionListItem>> ReadAllTransactions()
+        private async Task<List<TransactionListItem>> ReadAllTransactions()
         {
-            if (!File.Exists(FILE_NAME)) {
+            if (!File.Exists(FilePath)) {
                 return new List<TransactionListItem>();
             }
             return await File
-                .ReadAllTextAsync(FILE_NAME)
+                .ReadAllTextAsync(FilePath)
                 .PipeAsync(JsonConvert.DeserializeObject<List<TransactionListItem>>)
                 .PipeAsync(x => x ?? new List<TransactionListItem>());
         }

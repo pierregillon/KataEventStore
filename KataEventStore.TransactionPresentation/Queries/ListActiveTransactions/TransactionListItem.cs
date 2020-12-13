@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace KataEventStore.TransactionPresentation.Projections {
+namespace KataEventStore.TransactionPresentation.Queries.ListActiveTransactions {
     public class TransactionListItem
     {
         public Guid Id { get; set; }

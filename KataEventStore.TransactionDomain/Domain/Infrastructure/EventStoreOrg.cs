@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using EventStore.ClientAPI;
@@ -16,7 +15,6 @@ namespace KataEventStore.TransactionDomain.Domain.Infrastructure
     {
         private const int EVENT_COUNT = 200;
 
-        private readonly JsonSerializerSettings _serializerSettings;
         private readonly IDomainEventTypeLocator _domainEventTypeLocator;
         private readonly IEventStoreConnection _connection;
         private readonly ILogger<EventStoreOrg> _logger;
@@ -26,9 +24,6 @@ namespace KataEventStore.TransactionDomain.Domain.Infrastructure
             _domainEventTypeLocator = domainEventTypeLocator;
             _connection = connection;
             _logger = logger;
-            _serializerSettings = new JsonSerializerSettings {
-                Formatting = Formatting.Indented
-            };
         }
 
         // ----- Public methods
@@ -47,60 +42,25 @@ namespace KataEventStore.TransactionDomain.Domain.Infrastructure
                 @event.GetType().Name,
                 true,
                 Serialize(@event),
-                Serialize(new DomainEventMetadata{ CreationDate = DateTime.UtcNow })
+                Serialize(new DomainEventMetadata { CreationDate = DateTime.UtcNow })
             );
             await _connection.AppendToStreamAsync(GetStreamName(@event.AggregateId), ExpectedVersion.Any, eventData);
             _logger.LogInformation($"{@event.GetType()} has been stored.");
         }
-
-        private byte[] Serialize(object @event) => JsonConvert.SerializeObject(@event, _serializerSettings).Pipe(Encoding.UTF8.GetBytes);
 
         public async Task<IEnumerable<IDomainEvent>> GetAllEvents(Guid aggregateId) =>
             await ReadAllEventsInStream(GetStreamName(aggregateId), 0)
                 .SelectAsync(ConvertToDomainEvent)
                 .EnumerateAsync();
 
-        public async IAsyncEnumerable<IDomainEvent> GetAllEventsBetween(Position startPosition, Position endPosition, IReadOnlyCollection<Type> eventTypes)
-        {
-            var eventTypesByName = eventTypes.ToDictionary(x => x.Name);
-
-            AllEventsSlice currentSlice;
-
-            do {
-                currentSlice = await _connection.ReadAllEventsForwardAsync(startPosition, EVENT_COUNT, false);
-                startPosition = currentSlice.NextPosition;
-                foreach (var @event in currentSlice.Events.Where(x => !x.Event.EventType.StartsWith("$"))) {
-                    if (eventTypesByName.TryGetValue(@event.Event.EventType, out var eventType)) {
-                        yield return ConvertToDomainEvent(@event, eventType);
-                    }
-                    if (@event.OriginalPosition == endPosition) {
-                        yield break;
-                    }
-                }
-            } while (!currentSlice.IsEndOfStream);
-        }
-
-        public async Task<long> GetCurrentGlobalStreamPosition()
-        {
-            var slice = await _connection.ReadAllEventsBackwardAsync(Position.End, 1, false);
-            return slice.FromPosition.CommitPosition;
-        }
-
         // ----- Internal logic
 
         private IDomainEvent ConvertToDomainEvent(ResolvedEvent @event)
         {
-            if (_domainEventTypeLocator.TryGetValue(@event.Event.EventType, out var type)) {
-                return ConvertToDomainEvent(@event, type);
+            if (!_domainEventTypeLocator.TryGetValue(@event.Event.EventType, out var domainEventType)) {
+                throw new Exception("Event is unknown, unable to correctly deserialize it.");
             }
-            throw new Exception("Event is unknown, unable to correctly deserialize it.");
-        }
-
-        private IDomainEvent ConvertToDomainEvent(ResolvedEvent @event, Type eventType)
-        {
-            var json = Encoding.UTF8.GetString(@event.Event.Data);
-            var domainEvent = (IDomainEvent) JsonConvert.DeserializeObject(json, eventType, _serializerSettings);
-            return domainEvent;
+            return Deserialize(@event.Event.Data, domainEventType);
         }
 
         private async Task<IEnumerable<ResolvedEvent>> ReadAllEventsInStream(string streamId, int fromVersion)
@@ -120,7 +80,15 @@ namespace KataEventStore.TransactionDomain.Domain.Infrastructure
 
             return streamEvents;
         }
-        public static string GetStreamName(Guid id) => $"transaction-{id}";
-    }
 
+        private static string GetStreamName(Guid id) => $"transaction-{id}";
+
+        private static byte[] Serialize(object @event)
+            => JsonConvert.SerializeObject(@event).Pipe(Encoding.UTF8.GetBytes);
+
+        private static IDomainEvent Deserialize(byte[] eventData, Type domainEventType)
+            => eventData
+                .Pipe(Encoding.UTF8.GetString)
+                .Pipe(x => (IDomainEvent) JsonConvert.DeserializeObject(x, domainEventType));
+    }
 }

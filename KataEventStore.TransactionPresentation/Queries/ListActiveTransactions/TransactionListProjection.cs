@@ -2,9 +2,10 @@
 using System.Threading;
 using System.Threading.Tasks;
 using KataEventStore.Events;
+using KataEventStore.TransactionPresentation.Projections;
 using MediatR;
 
-namespace KataEventStore.TransactionPresentation.Projections
+namespace KataEventStore.TransactionPresentation.Queries.ListActiveTransactions
 {
     public class TransactionListProjection :
         INotificationHandler<TransactionCreated>,
