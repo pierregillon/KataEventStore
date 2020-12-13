@@ -15,6 +15,8 @@ namespace KataEventStore.TransactionDomain.Domain.Core._Base
         }
     }
 
+    #region Dynamic invocation
+
     internal static class DynamicInvoker
     {
         private const BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
@@ -124,4 +126,6 @@ namespace KataEventStore.TransactionDomain.Domain.Core._Base
 
         public object Invoke(object instance, params object[] arguments) => _func(instance, arguments);
     }
+
+    #endregion
 }

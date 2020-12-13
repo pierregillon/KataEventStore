@@ -29,3 +29,10 @@ You need to enable the $by_category projection on EventStore here http://127.0.0
 
 - Example using a persistent projection
 - The EventStore remembers the last ack event and send only new ones that match the subscribed stream
+
+## EventStore vs Bus only
+- Can replay all events from the begining
+- Can create custom projection to replay only a part of the events that occured (and concerns a specific app)
+
+
+But : single point of failure

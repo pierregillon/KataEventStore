@@ -61,10 +61,7 @@ namespace KataEventStore.TransactionPresentation.Projections
                     }
                 },
                 x => _logger.LogInformation("Moving to live mode"),
-                (subscription, reason, error) => {
-                    _logger.LogError(error, $"The subscription dropped because of {reason}");
-                }
-            );
+                (subscription, reason, error) => _logger.LogError(error, $"The subscription dropped because of {reason}"));
         }
 
         public Task StopAsync(CancellationToken cancellationToken)

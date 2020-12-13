@@ -51,7 +51,7 @@ namespace KataEventStore.TransactionDomain.Domain.Infrastructure
         public async Task<IEnumerable<IDomainEvent>> GetAllEvents(Guid aggregateId) =>
             await ReadAllEventsInStream(GetStreamName(aggregateId), 0)
                 .SelectAsync(ConvertToDomainEvent)
-                .EnumerateAsync();
+                .EnumerateAll();
 
         // ----- Internal logic
 
@@ -63,9 +63,8 @@ namespace KataEventStore.TransactionDomain.Domain.Infrastructure
             return Deserialize(@event.Event.Data, domainEventType);
         }
 
-        private async Task<IEnumerable<ResolvedEvent>> ReadAllEventsInStream(string streamId, int fromVersion)
+        private async IAsyncEnumerable<ResolvedEvent> ReadAllEventsInStream(string streamId, int fromVersion)
         {
-            var streamEvents = new List<ResolvedEvent>();
             StreamEventsSlice currentSlice;
             var nextSliceStart = fromVersion == -1 ? StreamPosition.Start : (long) fromVersion;
 
@@ -74,11 +73,11 @@ namespace KataEventStore.TransactionDomain.Domain.Infrastructure
                 if (currentSlice.Status != SliceReadStatus.Success) {
                     throw new InvalidOperationException($"The stream with id {streamId} was not found. Aggregate not found.");
                 }
+                foreach (var @event in currentSlice.Events) {
+                    yield return @event;
+                }
                 nextSliceStart = currentSlice.NextEventNumber;
-                streamEvents.AddRange(currentSlice.Events);
             } while (!currentSlice.IsEndOfStream);
-
-            return streamEvents;
         }
 
         private static string GetStreamName(Guid id) => $"transaction-{id}";
@@ -90,5 +89,15 @@ namespace KataEventStore.TransactionDomain.Domain.Infrastructure
             => eventData
                 .Pipe(Encoding.UTF8.GetString)
                 .Pipe(x => (IDomainEvent) JsonConvert.DeserializeObject(x, domainEventType));
+    }
+
+    public static class AsyncEnumerableExtensions
+    {
+        public static async IAsyncEnumerable<TProjected> SelectAsync<T, TProjected>(this IAsyncEnumerable<T> asyncEnumerable, Func<T, TProjected> project)
+        {
+            await foreach (var element in asyncEnumerable) {
+                yield return project(element);
+            }
+        }
     }
 }
