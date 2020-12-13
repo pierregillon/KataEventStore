@@ -5,16 +5,12 @@ VisualStudioVersion = 16.0.30320.27
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KataEventStore.TransactionDomain", "KataEventStore.TransactionDomain\KataEventStore.TransactionDomain.csproj", "{B87BA8E0-8A4D-4D66-A1F3-4E1C2986800A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KataEventStore.TransactionPresentation", "KataEventStore.TransactionPresentation\KataEventStore.TransactionPresentation.csproj", "{ADBDB299-C269-4F21-B141-275104BC1406}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KataEventStore.Events", "KataEventStore.Events\KataEventStore.Events.csproj", "{61156336-1DDB-4F79-8C76-7D4C89745D72}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{3CFAE5C6-F256-4AA0-8724-CEABD8991113}"
 	ProjectSection(SolutionItems) = preProject
 		readme.md = readme.md
 	EndProjectSection
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KataEventStore.TransactionPresentation.Persisted", "KataEventStore.TransactionPresentation.Persisted\KataEventStore.TransactionPresentation.Persisted.csproj", "{4BC5E9C2-0804-4BF5-8907-740ED86F00B7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,18 +22,10 @@ Global
 		{B87BA8E0-8A4D-4D66-A1F3-4E1C2986800A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B87BA8E0-8A4D-4D66-A1F3-4E1C2986800A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B87BA8E0-8A4D-4D66-A1F3-4E1C2986800A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{ADBDB299-C269-4F21-B141-275104BC1406}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{ADBDB299-C269-4F21-B141-275104BC1406}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{ADBDB299-C269-4F21-B141-275104BC1406}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{ADBDB299-C269-4F21-B141-275104BC1406}.Release|Any CPU.Build.0 = Release|Any CPU
 		{61156336-1DDB-4F79-8C76-7D4C89745D72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{61156336-1DDB-4F79-8C76-7D4C89745D72}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{61156336-1DDB-4F79-8C76-7D4C89745D72}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{61156336-1DDB-4F79-8C76-7D4C89745D72}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4BC5E9C2-0804-4BF5-8907-740ED86F00B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4BC5E9C2-0804-4BF5-8907-740ED86F00B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4BC5E9C2-0804-4BF5-8907-740ED86F00B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4BC5E9C2-0804-4BF5-8907-740ED86F00B7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
