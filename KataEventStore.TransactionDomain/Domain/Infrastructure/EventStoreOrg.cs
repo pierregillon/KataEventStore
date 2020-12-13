@@ -7,6 +7,7 @@ using EventStore.ClientAPI;
 using FluentAsync;
 using KataEventStore.Events;
 using KataEventStore.TransactionDomain.Domain.Core._Base;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace KataEventStore.TransactionDomain.Domain.Infrastructure
@@ -18,11 +19,13 @@ namespace KataEventStore.TransactionDomain.Domain.Infrastructure
         private readonly JsonSerializerSettings _serializerSettings;
         private readonly IDomainEventTypeLocator _domainEventTypeLocator;
         private readonly IEventStoreConnection _connection;
+        private readonly ILogger<EventStoreOrg> _logger;
 
-        public EventStoreOrg(IDomainEventTypeLocator domainEventTypeLocator, IEventStoreConnection connection)
+        public EventStoreOrg(IDomainEventTypeLocator domainEventTypeLocator, IEventStoreConnection connection, ILogger<EventStoreOrg> logger)
         {
             _domainEventTypeLocator = domainEventTypeLocator;
             _connection = connection;
+            _logger = logger;
             _serializerSettings = new JsonSerializerSettings {
                 Formatting = Formatting.Indented
             };
@@ -46,13 +49,14 @@ namespace KataEventStore.TransactionDomain.Domain.Infrastructure
                 Serialize(@event),
                 Serialize(new DomainEventMetadata{ CreationDate = DateTime.UtcNow })
             );
-            await _connection.AppendToStreamAsync(@event.AggregateId.ToString(), ExpectedVersion.Any, eventData);
+            await _connection.AppendToStreamAsync(GetStreamName(@event.AggregateId), ExpectedVersion.Any, eventData);
+            _logger.LogInformation($"{@event.GetType()} has been stored.");
         }
 
         private byte[] Serialize(object @event) => JsonConvert.SerializeObject(@event, _serializerSettings).Pipe(Encoding.UTF8.GetBytes);
 
         public async Task<IEnumerable<IDomainEvent>> GetAllEvents(Guid aggregateId) =>
-            await ReadAllEventsInStream(aggregateId.ToString(), 0)
+            await ReadAllEventsInStream(GetStreamName(aggregateId), 0)
                 .SelectAsync(ConvertToDomainEvent)
                 .EnumerateAsync();
 
@@ -116,7 +120,7 @@ namespace KataEventStore.TransactionDomain.Domain.Infrastructure
 
             return streamEvents;
         }
+        public static string GetStreamName(Guid id) => $"transaction-{id}";
     }
-
 
 }

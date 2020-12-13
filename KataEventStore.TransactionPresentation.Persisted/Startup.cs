@@ -6,7 +6,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
-namespace KataEventStore.TransactionPresentation
+namespace KataEventStore.TransactionPresentation.Persisted
 {
     public class Startup
     {
@@ -14,7 +14,7 @@ namespace KataEventStore.TransactionPresentation
         {
             services
                 .AddMediatR(typeof(Startup).Assembly)
-                .AddSwaggerGen(conf => conf.SwaggerDoc("v1.0", new OpenApiInfo { Title = "TransactionPresentation API v1.0", Version = "v1.0" }))
+                .AddSwaggerGen(conf => conf.SwaggerDoc("v1.0", new OpenApiInfo { Title = "TransactionPresentation.Persisted API v1.0", Version = "v1.0" }))
                 .AddControllers();
 
             services.RegisterApplicationServices();
@@ -22,7 +22,8 @@ namespace KataEventStore.TransactionPresentation
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env.IsDevelopment()) {
+            if (env.IsDevelopment())
+            {
                 app.UseDeveloperExceptionPage();
             }
 
@@ -31,7 +32,7 @@ namespace KataEventStore.TransactionPresentation
                 .UseEndpoints(endpoints => endpoints.MapControllers())
                 .UseSwagger()
                 .UseSwaggerUI(c => {
-                    c.SwaggerEndpoint("/swagger/v1.0/swagger.json", "TransactionPresentation API v1.0");
+                    c.SwaggerEndpoint("/swagger/v1.0/swagger.json", "TransactionPresentation.Persisted API v1.0");
                     c.DocExpansion(DocExpansion.None);
                     c.RoutePrefix = string.Empty;
                 });

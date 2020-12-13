@@ -2,16 +2,16 @@ using System;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.SystemData;
 using KataEventStore.Events;
-using KataEventStore.TransactionPresentation.Projections;
+using KataEventStore.TransactionPresentation.Persisted.Projections;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace KataEventStore.TransactionPresentation {
+namespace KataEventStore.TransactionPresentation.Persisted {
     public static class IServiceCollectionExtensions
     {
         public static IServiceCollection RegisterApplicationServices(this IServiceCollection services)
         {
-            services.AddSingleton<InMemoryDatabase>();
+            services.AddSingleton<ITransactionRepository, FileTransactionRepository>();
             services.AddScoped<IDomainEventTypeLocator, ReflectionDomainEventTypeLocator>();
             services.AddScoped<IEventStoreConnection>(x => {
                 var settings = ConnectionSettings
